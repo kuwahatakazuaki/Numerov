@@ -7,10 +7,20 @@
 module globals
   implicit none
   integer, save :: nx
+integer :: Ulog
   real(8), save :: xmin, xmax, mass,kine, h, h12
   real(8), save, allocatable :: f(:)
   real(8), parameter :: amu2au = 1.6605655D+4/9.1093897D0 ! atomic unit mass to atomic unit
   real(8), parameter :: au2cm = 2.19466D+5 ! atomic unit to wave number
+contains
+
+  subroutine printlog(itr,kine,bis)
+!    use globals
+!    implicit none
+    integer, intent(in) :: itr
+    real(8), intent(in) :: kine, bis
+    write(Ulog,'("No.", I3,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') itr, kine,bis
+  end subroutine printlog
 end module globals
 
 program main
@@ -41,8 +51,9 @@ call ReadPotential
 
 call numerov(psi)
 bis1 = psi(nx); bis2 = bis1
-open(22, file='log.out', status='replace')
-  write(22,'("# Starting step search")')
+! open(22, file='log.out', status='replace')
+open(NewUnit=Ulog, file='log.out', status='replace')
+  write(Ulog,'("# Starting step search")')
   call printlog(1,kine,bis1)
 
   do itr = 1, itr_max
@@ -55,7 +66,7 @@ open(22, file='log.out', status='replace')
   end do
   if ( itr >= itr_max ) then; goto 922; end if
 
-  write(22,'("# Starting bisection search")')
+  write(Ulog,'("# Starting bisection search")')
   kine2 = kine
   kine1 = kine - de
   do itr = 1, itr_max
@@ -72,11 +83,11 @@ open(22, file='log.out', status='replace')
     end if
   end do
   if ( itr >= itr_max ) then; goto 923; end if
-  write(22,'("# Searching is finished",/)')
+  write(Ulog,'("# Searching is finished",/)')
   call potential_energy(psi,Penergy,Zenergy)
-  write(22,'(4A20)') "Kinetic", "Potential","Zero-point", "Zero+Potential"
-  write(22,'(4f20.7)') kine, Penergy, Zenergy, Zenergy+Penergy
-close(22)
+  write(Ulog,'(4A20)') "Kinetic", "Potential","Zero-point", "Zero+Potential"
+  write(Ulog,'(4f20.7)') kine, Penergy, Zenergy, Zenergy+Penergy
+close(Ulog)
 
 call print_psi(psi)
 
@@ -199,12 +210,6 @@ subroutine potential_energy(psi,Penergy,Zenergy)
   Zenergy = kine - minE
 end subroutine potential_energy
 
-subroutine printlog(itr,kine,bis)
-  implicit none
-  integer, intent(in) :: itr
-  real(8), intent(in) :: kine, bis
-  write(22,'("No.", I3,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') itr, kine,bis
-end subroutine printlog
 
 
 !! Making a potential
