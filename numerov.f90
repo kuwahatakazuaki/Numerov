@@ -7,20 +7,12 @@
 module globals
   implicit none
   integer, save :: nx
-integer :: Ulog
   real(8), save :: xmin, xmax, mass,kine, h, h12
   real(8), save, allocatable :: f(:)
   real(8), parameter :: amu2au = 1.6605655D+4/9.1093897D0 ! atomic unit mass to atomic unit
   real(8), parameter :: au2cm = 2.19466D+5 ! atomic unit to wave number
 contains
 
-  subroutine printlog(itr,kine,bis)
-!    use globals
-!    implicit none
-    integer, intent(in) :: itr
-    real(8), intent(in) :: kine, bis
-    write(Ulog,'("No.", I3,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') itr, kine,bis
-  end subroutine printlog
 end module globals
 
 program main
@@ -28,8 +20,9 @@ use globals
 implicit none
 integer :: i, ni, itr, itr_max
 real(8), parameter :: eps = 1.0d-5
-real(8) :: eI, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
+real(8) :: eI = -1d-300, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
 real(8), allocatable :: psi(:)
+integer :: Ulog
 ! Penergy: Potential energy, Zenergy: Zero-point energy
 
 ! xmin, xmax is the range of x, mass is reduced mass
@@ -48,6 +41,13 @@ allocate(f(0:nx))
 
 ! Reading potential energy from "pes.inp"
 call ReadPotential
+
+if ( eI == 0.0d0 ) then
+  print *, "eI == 0.0d0"
+  print *, "minval is ",minval(f)
+  eI = minval(f) + de
+  print *, "eI is ", eI
+end if
 
 call numerov(psi)
 bis1 = psi(nx); bis2 = bis1
@@ -95,6 +95,14 @@ print *, "Normal termination Data is saved in wave.out"
 stop
 922 stop "Erro first serching"
 923 stop "Erro bisection serching"
+contains
+
+  subroutine printlog(itr,kine,bis)
+    integer, intent(in) :: itr
+    real(8), intent(in) :: kine, bis
+    write(Ulog,'("No.", I3,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') itr, kine,bis
+  end subroutine printlog
+
 end program main
 
 subroutine ReadInp(xmin,xmax,mass,nx,eI,de,itr_max)
@@ -128,7 +136,7 @@ subroutine numerov(psi)
   implicit none
   integer :: i, n
   real(8), intent(inout) :: psi(0:nx)
-  real(8) :: x, de
+!  real(8) :: x, de
   real(8), external :: k2
 
   do i = 0, nx-2, 1
