@@ -20,7 +20,7 @@ use globals
 implicit none
 integer :: i, ni, itr, itr_max
 real(8), parameter :: eps = 1.0d-5
-real(8) :: eI = -1d-300, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
+real(8) :: eI, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
 real(8), allocatable :: psi(:)
 integer :: Ulog
 ! Penergy: Potential energy, Zenergy: Zero-point energy
@@ -30,6 +30,13 @@ integer :: Ulog
 ! eI is the initial kinetic energy, de is the delta of kinetic energy
 ! itr_max is the maximum of the iteration
 call ReadInp(xmin,xmax,mass,nx,eI,de,itr_max)
+! Reading potential energy from "pes.inp"
+allocate(f(0:nx))
+call ReadPotential
+if ( eI == 0.0d0 ) then
+  eI = minval(f) + de
+  print *, "eI is ", eI
+end if
 h = (xmax-xmin)/dble(nx)
 h12 = h*h/12.0d0
 kine = eI
@@ -37,17 +44,7 @@ allocate(psi(0:nx))
   psi(0) = 0.0d0
   psi(1) = 1.d-4
 open(23, file='norm.out', status='replace');close(23)
-allocate(f(0:nx))
 
-! Reading potential energy from "pes.inp"
-call ReadPotential
-
-if ( eI == 0.0d0 ) then
-  print *, "eI == 0.0d0"
-  print *, "minval is ",minval(f)
-  eI = minval(f) + de
-  print *, "eI is ", eI
-end if
 
 call numerov(psi)
 bis1 = psi(nx); bis2 = bis1
@@ -136,7 +133,6 @@ subroutine numerov(psi)
   implicit none
   integer :: i, n
   real(8), intent(inout) :: psi(0:nx)
-!  real(8) :: x, de
   real(8), external :: k2
 
   do i = 0, nx-2, 1
