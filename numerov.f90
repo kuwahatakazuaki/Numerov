@@ -12,6 +12,7 @@ real(8), parameter :: eps = 1.0d-5
 real(8), parameter :: amu2au = 1.6605655D+4/9.1093897D0 ! atomic unit mass to atomic unit
 real(8), parameter :: au2cm = 2.19466D+5 ! atomic unit to wave number
 real(8), parameter :: ang2au = 1.d0/0.52918d0
+real(8), parameter :: au2ang = 0.52918d0
 integer :: i, nx, itr, itr_max
 real(8) :: xmin, xmax, mass,kine, h, h12
 real(8) :: eI, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
@@ -20,9 +21,9 @@ real(8), allocatable :: f(:)
 integer :: Ulog, Unor
 
 call ReadInp
-allocate(f(0:nx))
 call ReadPotential
 
+! h = (xmax-xmin)/dble(nx) * ang2au
 h = (xmax-xmin)/dble(nx)
 h12 = h*h/12.0d0
 kine = eI
@@ -98,20 +99,29 @@ end subroutine print_psi
 subroutine ReadInp
   character(len=20) keyword
   open(20, file='input.dat', status='old', err=920)
-    read(20,*) keyword
-      if ( keyword == "xmin" ) then; read(20,*) xmin; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "xmax" ) then; read(20,*) xmax; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "mass" ) then; read(20,*) mass; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "nx" ) then; read(20,*) nx; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "eI" ) then; read(20,*) eI; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "de" ) then; read(20,*) de; else; goto 901; end if
-    read(20,*) keyword
-      if ( keyword == "itr_max" ) then; read(20,*) itr_max; else; goto 901; end if
+    do
+      read(20,*,end=101) keyword
+      if ( keyword == "mass"      ) then
+        read(20,*) mass
+      else if ( keyword == "eI"   ) then
+        read(20,*) ei
+      else if ( keyword == "de"   ) then
+        read(20,*) de
+      else if ( keyword == "itr_max" ) then
+        read(20,*) itr_max
+      else if ( keyword == "EOF" ) then
+        exit
+!      else if ( keyword == "xmin" ) then
+!        read(20,*) xmin
+!      else if ( keyword == "xmax" ) then
+!        read(20,*) xmax
+!      else if ( keyword == "nx"   ) then
+!        read(20,*) nx
+      else
+        goto 901
+      end if
+    end do
+101 continue
   close(20)
   return
   901 stop "Check the imput parameter!!"
@@ -120,17 +130,36 @@ end subroutine ReadInp
 
 subroutine ReadPotential
   real(8) :: dummy
-  open(31, file='pes.inp', status='old', err=931)
-    do i = 0, nx
-      read(31,*) dummy, f(i)
+  real(8), allocatable :: xcoor(:)
+  integer :: Upes
+  nx = 0
+  open(NewUnit=Upes, file='pes.inp', status='old', err=931)
+    do
+      read(Upes,*,err=900,end=100) dummy
+      nx = nx + 1
     end do
-  close(31)
+100 continue
+    nx = nx -1
+    rewind(Upes)
+
+allocate(f(0:nx))
+allocate(xcoor(0:nx))
+
+    do i = 0, nx
+      read(Upes,*) xcoor(i), f(i)
+    end do
+  close(Upes)
+
   if ( eI == 0.0d0 ) then
     eI = minval(f) + de
     print *, "eI is ", eI
   end if
+!  print *, xcoor(0), xcoor(nx)
+  xmin = xcoor(0)
+  xmax = xcoor(nx)
   return
   931 stop "Thre is no pes.inp"
+  900 stop 'Check the format of "pes.inp"'
 end subroutine ReadPotential
 
 subroutine calc_numerov
@@ -167,4 +196,18 @@ end subroutine
 
 end program main
 
+
+!      if ( keyword == "xmin" ) then; read(20,*) xmin; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "xmax" ) then; read(20,*) xmax; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "mass" ) then; read(20,*) mass; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "nx" ) then; read(20,*) nx; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "ei" ) then; read(20,*) ei; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "de" ) then; read(20,*) de; else; goto 901; end if
+!    read(20,*) keyword
+!      if ( keyword == "itr_max" ) then; read(20,*) itr_max; else; goto 901; end if
 
