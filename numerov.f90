@@ -23,8 +23,8 @@ integer :: Ulog, Unor
 call ReadInp
 call ReadPotential
 
-! h = (xmax-xmin)/dble(nx) * ang2au
-h = (xmax-xmin)/dble(nx)
+h = (xmax-xmin)/dble(nx) * ang2au
+! h = (xmax-xmin)/dble(nx)
 h12 = h*h/12.0d0
 kine = eI
 allocate(psi(0:nx))
@@ -90,8 +90,8 @@ subroutine print_psi
   real(8) :: x
   open(NewUnit=Upsi, file='wave.out', status='replace')
     do i = 0, nx
-      x = xmin + h*dble(i) ! xmin + h*dble(i)
-      write(Upsi,*) x, psi(i), f(i)
+      x = xmin + h*dble(i)*au2ang
+      write(Upsi,*) x, psi(i)*sqrt(ang2au), f(i)
     end do
   close(Upsi)
 end subroutine print_psi
@@ -151,7 +151,8 @@ allocate(xcoor(0:nx))
   close(Upes)
 
   if ( eI == 0.0d0 ) then
-    eI = minval(f) + de
+    eI = minval(f) + 0.5d0*de
+!    eI = minval(f)
     print *, "eI is ", eI
   end if
 !  print *, xcoor(0), xcoor(nx)
@@ -169,16 +170,18 @@ subroutine calc_numerov
     psi(i+2) = psi(i+2) / (1.0+h12*k2(i+2))
   end do
 
-  norm = psi(0)**2 + psi(nx)**2
+! Normalized with Simpson's rule
+  norm = 0.0d0
+  norm = psi(0)**2 + psi(nx)**2 + 4.0d0*psi(nx-1)**2
   do i = 1, nx-3, 2
     norm = norm + 4.0d0*psi(i)**2 + 2.0d0*psi(i+1)**2
   end do
-  norm = norm + 4.0d0 * psi(nx-1)**2
-  norm = sqrt(norm*h/3.0d0)
+!  norm = sqrt(norm*h/3.0d0)
+  norm = norm*h/3.0d0
   open(NewUnit=Unor, file='norm.out', position='append')
     write(Unor,*) norm
   close(Unor)
-  psi(:) = psi(:) / norm
+  psi(:) = psi(:) / sqrt(norm)
 end subroutine calc_numerov
 
 real(8) function k2(i)
