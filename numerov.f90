@@ -123,9 +123,23 @@ subroutine ReadInp
     end do
 101 continue
   close(20)
+
   return
+  920 continue
+    print *, "There is no input.dat"
+    open(30, file='input.dat', status='new')
+      write(30,*) ' mass    # atomic mass of particle'
+      write(30,*) '1.007825 '
+      write(30,*) ' eI      # Initial kinetic energy'
+      write(30,*) '0.0      '
+      write(30,*) ' de      # Energy step for search'
+      write(30,*) '0.01     '
+      write(30,*) ' itr_max # The number of trials for search'
+      write(30,*) '200      '
+      write(30,*) ' EOF     '
+    close(30)
+  stop "ERROR!!"
   901 stop "Check the imput parameter!!"
-  920 stop "There is no input.dat"
 end subroutine ReadInp
 
 subroutine ReadPotential
