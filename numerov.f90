@@ -97,25 +97,21 @@ subroutine print_psi
 end subroutine print_psi
 
 subroutine ReadInp
-  character(len=20) keyword
+  character(len=20) line
   open(20, file='input.dat', status='old', err=920)
     do
-      read(20,*,end=101) keyword
-      if ( keyword == "mass"      ) then
-        read(20,*) mass
-      else if ( keyword == "eI"   ) then
-        read(20,*) ei
-      else if ( keyword == "de"   ) then
-        read(20,*) de
-      else if ( keyword == "itr_max" ) then
-        read(20,*) itr_max
-      else if ( keyword == "EOF" ) then
-        exit
-!      else if ( keyword == "xmin" ) then
+      read(20,*,end=101) line
+      if      (index(trim(line), "mass"   ) > 0) then; read(20,*) mass
+      else if (index(trim(line), "eI"     ) > 0) then; read(20,*) ei
+      else if (index(trim(line), "de"     ) > 0) then; read(20,*) de
+      else if (index(trim(line), "itr_max") > 0) then; read(20,*) itr_max
+      else if (index(trim(line), "EOF"    ) > 0) then; exit
+
+!      else if ( line == "xmin" ) then
 !        read(20,*) xmin
-!      else if ( keyword == "xmax" ) then
+!      else if ( line == "xmax" ) then
 !        read(20,*) xmax
-!      else if ( keyword == "nx"   ) then
+!      else if ( line == "nx"   ) then
 !        read(20,*) nx
       else
         goto 901
@@ -126,7 +122,8 @@ subroutine ReadInp
 
   return
   920 continue
-    print *, "There is no input.dat"
+    print *, 'There is no input.dat'
+    print *, 'Please use template of "input.dat"'
     open(30, file='input.dat', status='new')
       write(30,*) ' mass    # atomic mass of particle'
       write(30,*) '1.007825 '
