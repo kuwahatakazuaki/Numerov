@@ -126,14 +126,14 @@ subroutine ReadInp
     print *, 'Please use template of "input.dat"'
     open(30, file='input.dat', status='new')
       write(30,'(a)') ' mass    # atomic mass of particle'
-      write(30,'(a)') '1.007825 '
+      write(30,'(a)') '1.007825'
       write(30,'(a)') ' eI      # Initial kinetic energy'
-      write(30,'(a)') '0.0      '
+      write(30,'(a)') '0.0      # "0.0" means automatically determine energy'
       write(30,'(a)') ' de      # Energy step for search'
-      write(30,'(a)') '0.01     '
+      write(30,'(a)') '0.001'
       write(30,'(a)') ' itr_max # The number of trials for search'
-      write(30,'(a)') '200      '
-      write(30,'(a)') ' EOF     '
+      write(30,'(a)') '200'
+      write(30,'(a)') ' EOF'
     close(30)
   stop "ERROR!!"
   901 stop "Check the imput parameter!!"
@@ -162,8 +162,8 @@ allocate(xcoor(0:nx))
   close(Upes)
 
   if ( eI == 0.0d0 ) then
-    eI = minval(f) + 0.5d0*de
-!    eI = minval(f)
+!    eI = minval(f) + 0.5d0*de
+    eI = minval(f)
     print *, "eI is ", eI
   end if
 !  print *, xcoor(0), xcoor(nx)
