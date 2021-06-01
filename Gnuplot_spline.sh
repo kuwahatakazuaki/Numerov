@@ -8,7 +8,7 @@ fi
 input="$1"
 output="pes.inp"
 var="var.dat"
-nx=200 # the number of plots
+nx=300 # the number of plots
 
 gnuplot << EOF
   set table "$output"
@@ -21,6 +21,8 @@ gnuplot << EOF
   set format y "%16.9f"
   plot "$input" smooth csplines
 EOF
+
+sed -i -e '1,4d' $output
 
 #xmin=`grep "STATS_min_x" $var | awk '{print $3}'`
 #xmax=`grep "STATS_max_x" $var | awk '{print $3}'`

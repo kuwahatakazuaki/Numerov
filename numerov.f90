@@ -210,18 +210,3 @@ end subroutine
 
 end program main
 
-
-!      if ( keyword == "xmin" ) then; read(20,*) xmin; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "xmax" ) then; read(20,*) xmax; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "mass" ) then; read(20,*) mass; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "nx" ) then; read(20,*) nx; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "ei" ) then; read(20,*) ei; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "de" ) then; read(20,*) de; else; goto 901; end if
-!    read(20,*) keyword
-!      if ( keyword == "itr_max" ) then; read(20,*) itr_max; else; goto 901; end if
-
