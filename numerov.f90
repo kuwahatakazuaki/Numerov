@@ -30,11 +30,13 @@ kine = eI
 allocate(psi(0:nx))
   psi(0) = 0.0d0
   psi(1) = 1.d-4
-open(newunit=Unor, file='norm.out', status='replace');close(Unor)
+open(newunit=Unor, file='norm.out', status='replace')
+close(Unor)
 
 call calc_numerov
 call print_psi
-bis1 = psi(nx); bis2 = bis1
+bis1 = psi(nx)
+bis2 = bis1
 open(NewUnit=Ulog, file='log.out', status='replace')
   write(Ulog,'("# Starting step search")')
   call printlog(1,bis1)
