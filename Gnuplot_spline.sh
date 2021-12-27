@@ -22,7 +22,7 @@ gnuplot << EOF
   plot "$input" smooth csplines
 EOF
 
-sed -i '1,4d' $output
+sed -i "" -e  '1,4d' $output
 
 #xmin=`grep "STATS_min_x" $var | awk '{print $3}'`
 #xmax=`grep "STATS_max_x" $var | awk '{print $3}'`

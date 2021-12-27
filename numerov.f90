@@ -33,6 +33,7 @@ allocate(psi(0:nx))
 open(newunit=Unor, file='norm.out', status='replace');close(Unor)
 
 call calc_numerov
+call print_psi
 bis1 = psi(nx); bis2 = bis1
 open(NewUnit=Ulog, file='log.out', status='replace')
   write(Ulog,'("# Starting step search")')
@@ -82,7 +83,7 @@ contains
 subroutine printlog(step,bis)
   integer, intent(in) :: step
   real(8), intent(in) :: bis
-  write(Ulog,'("No.", I3,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') step, kine, bis
+  write(Ulog,'("No.", I4,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') step, kine, bis
 end subroutine printlog
 
 subroutine print_psi
