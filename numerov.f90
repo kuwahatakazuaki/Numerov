@@ -98,7 +98,7 @@ contains
 subroutine printlog(step,bis)
   integer, intent(in) :: step
   real(8), intent(in) :: bis
-  write(Ulog,'("No.", I4,"   Kinetic = ",f14.9, "   Bound = ",f14.9)') step, kine, bis
+  write(Ulog,'("No.", I4,"   Kinetic = ",f16.9, "   Bound = ",f14.9)') step, kine, bis
 end subroutine printlog
 
 subroutine print_psi
