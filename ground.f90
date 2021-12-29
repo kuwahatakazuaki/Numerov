@@ -8,7 +8,7 @@
 
 program main
   implicit none
-  real(8), parameter :: eps = 1.0d-4
+  real(8), parameter :: eps = 1.0d-5
   real(8), parameter :: amu2au = 1.6605655D+4/9.1093897D0 ! atomic unit mass to atomic unit
   real(8), parameter :: au2cm = 2.19466D+5 ! atomic unit to wave number
   real(8), parameter :: ang2au = 1.d0/0.52918d0
@@ -16,7 +16,7 @@ program main
   integer :: i, nx, itr, itr_max
   real(8) :: xmin, xmax, mass,kine, h, h12
   real(8) :: eI, de, bis1, bis2, kine1, kine2, Penergy, Zenergy
-  real(8), allocatable :: psi(:), psiall(:,:)
+  real(8), allocatable :: psi(:)
   real(8), allocatable :: f(:)
   integer :: Ulog, Unor
   integer :: Iexci = 0, Nexci = 2
@@ -32,64 +32,59 @@ program main
   close(Unor)
 
   allocate(psi(0:nx))
-  allocate(psiall(0:nx,0:Nexci))
 
   open(NewUnit=Ulog, file='log.out', status='replace')
-    do Iexci = 0, Nexci
-      print *, Iexci, eI
-      ! initial condition of wave function
-      kine = eI
-      psi(0) = 0.0d0
-      psi(1) = 1.d-4
+    ! do Iexci = 0, Nexci
+    ! initial condition of wave function
+    kine = eI
+    psi(0) = 0.0d0
+    psi(1) = 1.d-4
 
+    call calc_numerov
+    ! call print_psi    ! print wave function and potential
+    bis1 = psi(nx)
+    bis2 = bis1
+
+    !write(Ulog,*) "# Electron state : ", Iexci
+    write(Ulog,'("# Starting step search")')
+    call printlog(1,bis1)
+
+    do itr = 1, itr_max
+      kine = kine + de
+      bis1 = bis2
       call calc_numerov
-      bis1 = psi(nx)
-      bis2 = bis1
-
-      write(Ulog,*) "# Electron state : ", Iexci
-      write(Ulog,'("# Starting step search")')
-      call printlog(1,bis1)
-
-      do itr = 1, itr_max
-        kine = kine + de
-        bis1 = bis2
-        call calc_numerov
-        bis2 = psi(nx)
-        call printlog(itr+1,bis2)
-        if ( bis1*bis2 <= 0 ) exit
-      end do
-      if ( itr >= itr_max ) goto 922
-
-      write(Ulog,'("# Starting bisection search")')
-      kine2 = kine
-      kine1 = kine - de
-      do itr = 1, itr_max
-        kine = 0.5 * (kine1 + kine2)
-        call calc_numerov
-        bis2 = psi(nx)
-        call printlog(itr,bis2)
-        if (abs(bis2) <= eps) exit
-        if (bis2*bis1 <= 0.0d0) then
-          kine2 = kine
-        else
-          kine1 = kine
-          bis1 = bis2
-        end if
-      end do
-      if ( itr >= itr_max ) goto 923
-
-      write(Ulog,'("# Searching is finished",/)')
-      call calc_potential
-      write(Ulog,'(4A20)') "Kinetic", "Potential","Zero-point", "Zero+Potential"
-      write(Ulog,'(4f20.7)') kine, Penergy, Zenergy, Zenergy+Penergy
-
-      eI = kine + de
-      psiall(:,Iexci) = psi(:)
+      bis2 = psi(nx)
+      call printlog(itr+1,bis2)
+      if ( bis1*bis2 <= 0 ) exit
     end do
+    if ( itr >= itr_max ) goto 922
+  
+    write(Ulog,'("# Starting bisection search")')
+    kine2 = kine
+    kine1 = kine - de
+    do itr = 1, itr_max
+      kine = 0.5 * (kine1 + kine2)
+      call calc_numerov
+      bis2 = psi(nx)
+      call printlog(itr,bis2)
+      if (abs(bis2) <= eps) exit
+      if (bis2*bis1 <= 0.0d0) then
+        kine2 = kine
+      else
+        kine1 = kine
+        bis1 = bis2
+      end if
+    end do
+    if ( itr >= itr_max ) goto 923
+  
+    write(Ulog,'("# Searching is finished",/)')
+    call calc_potential
+    write(Ulog,'(4A20)') "Kinetic", "Potential","Zero-point", "Zero+Potential"
+    write(Ulog,'(4f20.7)') kine, Penergy, Zenergy, Zenergy+Penergy
   close(Ulog)
-
+  
   call print_psi
-
+  
   stop 'Normal termination Data is saved in "wave.out"'
   922 stop "Erro first serching"
   923 stop "Erro bisection serching"
@@ -98,7 +93,7 @@ contains
 subroutine printlog(step,bis)
   integer, intent(in) :: step
   real(8), intent(in) :: bis
-  write(Ulog,'("No.", I4,"   Kinetic = ",f14.9, "   Bound = ",f14.9)') step, kine, bis
+  write(Ulog,'("No.", I4,"   Kinetic = ",f13.8, "   Bound = ",f13.8)') step, kine, bis
 end subroutine printlog
 
 subroutine print_psi
@@ -107,8 +102,7 @@ subroutine print_psi
   open(NewUnit=Upsi, file='wave.out', status='replace')
     do i = 0, nx
       x = xmin + h*dble(i)*au2ang
-      !write(Upsi,*) x, psi(i)*sqrt(ang2au), f(i)
-      write(Upsi,*) x, psiall(i,:)*sqrt(ang2au), f(i)
+      write(Upsi,*) x, psi(i)*sqrt(ang2au), f(i)
     end do
   close(Upsi)
 end subroutine print_psi
