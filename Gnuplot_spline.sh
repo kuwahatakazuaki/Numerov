@@ -8,7 +8,7 @@ fi
 input="$1"
 output="pes.inp"
 var="var.dat"
-nx=300 # the number of plots
+nx=200 # the number of plots
 
 gnuplot << EOF
   set table "$output"
@@ -19,7 +19,7 @@ gnuplot << EOF
 
   set format x "%12.5f"
   set format y "%16.9f"
-  plot "$input" smooth csplines
+  plot "$input" u 1:(\$2-STATS_min_y) smooth csplines
 EOF
 
 sed -i "" -e  '1,4d' $output
